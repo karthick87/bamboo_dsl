@@ -1,0 +1,65 @@
+project:
+  key: DEVOPS
+  name: DevOps_Projects
+  plans:
+    - key: DEMO
+      name: DEMO
+      scm:
+        - !bitbucketCloud
+          name: Bamboo DSL        
+          repoSlug: karthickmurugadhas/bamboo_dsl
+          branch: master
+          authType: !sharedCredentials
+            sharedCredentialsType: !sharedCredentialsType USERNAMEPW
+            name: BitBucket2
+      stages:
+        - name: Build
+          jobs:
+            - key: BUILD
+              name: BUILD
+              tasks:
+                - !cleanWorkingDir
+                  isFinal: true
+                - !checkout
+                  description: SCM Checkout Repository
+                  forceCleanBuild: true
+                  repositories:
+                    - name: Bamboo DSL
+                - !maven3x
+                  goal: install
+                  description: build plug-in
+                  executable: Maven
+                  buildJdk: JDK
+        - name: Dev
+          jobs:
+            - key: DEV
+              name: DEV
+              tasks:
+                - !script
+                  inlineScript:
+                    scriptBody: echo "This is Dev Environment"
+        - name: Test
+          jobs:
+            - key: TEST
+              name: TEST
+              tasks:
+                - !script
+                  inlineScript:
+                    scriptBody: echo "This is Test Environment"
+        - name: Prod
+          jobs:
+            - key: PROD
+              name: PROD
+              tasks:
+                - !script
+                  inlineScript:
+                    scriptBody: echo "This is Prod Environment"
+      triggers:
+        - !polling
+          description: Scheduled Polling
+          periodicTrigger:
+            pollingFrequencyInSecs: 1
+      notifications:
+        - !email
+          address: karthick.murugadhas@tieto.com
+          event: !event ALL_BUILDS_COMPLETED            
